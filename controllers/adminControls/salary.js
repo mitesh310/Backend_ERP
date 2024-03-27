@@ -30,10 +30,6 @@ const { getDaysOfMonthWithDay } = require('../../utils/getdateofmonths');
 
 
 const createSalarybyempId = async (req, res) => {
-
-
-
-
     // required body: employeeId, month, year, workinghours
 
     // ex: need to calculate salary of 1st month of employee no 102
@@ -98,29 +94,6 @@ const createSalarybyempId = async (req, res) => {
     const noofHolidays = holidaysofMonth.length;
     console.log("no of holidays------>", noofHolidays)
 
-
-    // const leavesOfEmployee = await new Promise((resolve, reject) => {
-    //     const query = `SELECT 	startDate
-    //     FROM leaves
-    //     WHERE startDate >= DATE_FORMAT(NOW(), '%Y-%m-01')
-    //     AND startDate <= LAST_DAY(NOW()) 
-    //     AND empId= ${req.body.emplyoeeId}
-    //     `
-
-    //     db.query(query, (err, results) => {
-    //         if (err) {
-    //             reject(err)
-    //         }
-    //         else {
-    //             resolve(results);
-    //         }
-    //     })
-    //     leavesOfEmployee.forEach((day) => {
-    //         day.startDate = convtoIST(day.startDate);
-    //     });
-    // })
-
-
     const currentSalary = await new Promise((resolve, reject) => {
         const query = `SELECT 	salary
         FROM employee
@@ -138,7 +111,7 @@ const createSalarybyempId = async (req, res) => {
     console.log("salary of employee------>", currentSalary)
 
     //finding present days of employee 
-    const getPresentDays = async (req, res) => {
+    const getPresentDays = async () => {
         const startDate = new Date(req.body.year, req.body.month - 1, 2); // Months are 0-indexed in JavaScript Date
         const endDate = new Date(req.body.year, req.body.month, 0); // Day 0 of the next month is the last day of the current month
 
@@ -146,7 +119,7 @@ const createSalarybyempId = async (req, res) => {
         const startDateFormat = startDate.toISOString().split('T')[0];
         const endDateFormat = endDate.toISOString().split('T')[0];
 
-        const resData = getDaysOfMonthWithDay();
+        const resData = getDaysOfMonthWithDay(req.body.year, req.body.month);
         // console.log(resData)
         const attendenceData = await new Promise((resolve, reject) => {
             const query = `SELECT *
@@ -277,14 +250,13 @@ const createSalarybyempId = async (req, res) => {
     }
 
     const [totalPresentDays, leaveDates] = await getPresentDays(req, res)
-    // console.log(" employee was present on days ------>", totalPresentDays.length)
 
 
     let hoursworked = 0;
     for (let i = 0; i < totalPresentDays.length; i++) {
-        const day = totalPresentDays[i];
+        const day = totalPresentDays[i];	
 
-        if (!day.attendeDetails) {
+        if (!day.attendeDetails || day.attendeDetails.clockOut=='00:00:00') {
             continue
         }
         else {
@@ -292,9 +264,10 @@ const createSalarybyempId = async (req, res) => {
             const time1 = day.attendeDetails.clockIn;
             const time2 = day.attendeDetails.clockOut;
             const [hours] = timeDiff(time1, time2);
+            console.log(time2+" - "+time1+" = ",hours)
             // console.log(hours + "on day", + day.date)
             hoursworked += hours;
-            // console.log(hoursworked)
+            console.log("worked "+ hoursworked + " hours at day"+ i)
         }
     }
     console.log("total hour worked------->", hoursworked)

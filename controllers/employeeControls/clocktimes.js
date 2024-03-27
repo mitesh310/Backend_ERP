@@ -1,6 +1,6 @@
 const db = require('../../config/db')
 
-const getDate = require('../../utils/getDate.js') 
+const {getDate} = require('../../utils/getDate.js') 
 
 const clockIn=async (req, res) => {
     var today = new Date();

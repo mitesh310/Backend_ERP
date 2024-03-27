@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const db = require('../../config/db')
 
 
-const { todayDate } = require('../../utils/getDate')
+const { getDate } = require('../../utils/getDate')
 
 const convtoIST = require('../../utils/convtoIST')
 const createHoliday = async (req, res) => {
@@ -49,6 +49,10 @@ const createHoliday = async (req, res) => {
     });
 }
 const getAllHolidays = async (req, res) => {
+
+    const today = new Date();
+    const { todayDate } = getDate(today)
+
     db.query(`SELECT * FROM holidays WHERE holidayDate> '${todayDate}'`, (err, results) => {
         if (err) {
             res.status(500).json({ err: 'Internal Server Error', err: err });
@@ -56,7 +60,7 @@ const getAllHolidays = async (req, res) => {
         }
         else {
             results.forEach(row => {
-                row.holidayDate=convtoIST(row.holidayDate)
+                row.holidayDate = convtoIST(row.holidayDate)
             });
             res.status(200).json({ status: 200, message: 'got all policies', data: results });
         }
@@ -70,7 +74,7 @@ const getHolidaysbyId = async (req, res) => {
         }
         else {
             results.forEach(row => {
-                row.holidayDate=convtoIST(row.holidayDate)
+                row.holidayDate = convtoIST(row.holidayDate)
             });
             res.status(200).json({ status: 200, message: 'data for given policy Id', data: results });
         }
